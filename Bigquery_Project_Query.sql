@@ -1,14 +1,7 @@
 -- Big project for SQL
--- Link instruction: https://docs.google.com/spreadsheets/d/1WnBJsZXj_4FDi2DyfLH1jkWtfTridO2icWbWCh7PLs8/edit#gid=0
-
---Lưu ý chung: với Bigquery thì mình có thể groupby, orderby 1,2,3(1,2,3() ở đây là thứ tự của column mà mình select nhé
---Thụt dòng cho từng đoạn, từng phần để dễ nhìn hơn
---k nên đặt tên CTE là cte hoặc ABC,nên đặt tên viết tắt, mà nhìn vào mình có thể hiểu đc CTE đó đang lấy data gì
 
 -- Query 01: calculate total visit, pageview, transaction and revenue for Jan, Feb and March 2017 order by month
 #standardSQL
---a sẽ chỉnh lại bài, thụt dòng theo 1 nguyên tắc, e coi coi dễ nhìn hơn k
-
 SELECT 
     FORMAT_DATE("%Y%m", PARSE_DATE("%Y%m%d", date )) AS month,
     count(totals.visits) as visits,
@@ -57,7 +50,6 @@ union all
 select * from abc
 order by 2 desc;
 --Query 04: Average number of product pageviews by purchaser type (purchasers vs non-purchasers) in June, July 2017. 
-Note: totals.transactions >=1 for purchaser and totals.transactions is null for non-purchaser
 #standardSQL
 
 SELECT 
@@ -107,10 +99,6 @@ _table_suffix between '0701' and '0731'
 -- Query 07: Other products purchased by customers who purchased product "YouTube Men's Vintage Henley" in July 2017. Output should show product name and the quantity was ordered.
 #standardSQL
 
---bài này yêu cầu mình lấy những sản phẩm mà được mua bởi nhóm khách hàng (A), là nhóm mà đã từng mua sp Youtube
---step 1 mình sẽ lấy ds nhóm khách hàng (A), đã từng mua sp Youtube
---step 2 mình lấy những sp đc mua, loại sp youtube ra
---subquery:
 select
     product.v2productname as other_purchased_product,
     sum(product.productQuantity) as quantity
@@ -177,8 +165,6 @@ num_addtocart,num_purchase,
 (num_addtocart/num_product_view*100) as purchase_rate
 from x
 
---thường vs những đề bài phức tạp, a sẽ dùng CTE, để dễ kiểm soát câu query hơn
-with
 product_view as(
 SELECT
   format_date("%Y%m", parse_date("%Y%m%d", date)) as month,
@@ -227,29 +213,7 @@ join purchase p on pv.month = p.month
 order by pv.month
 
 
-Cách 2: bài này mình có thể dùng count(case when) hoặc sum(case when)
-
-with product_data as(
-select
-    format_date('%Y%m', parse_date('%Y%m%d',date)) as month,
-    count(CASE WHEN eCommerceAction.action_type = '2' THEN product.v2ProductName END) as num_product_view,
-    count(CASE WHEN eCommerceAction.action_type = '3' THEN product.v2ProductName END) as num_add_to_cart,
-    count(CASE WHEN eCommerceAction.action_type = '6' THEN product.v2ProductName END) as num_purchase
-FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`
-,UNNEST(hits) as hits
-,UNNEST (hits.product) as product
-where _table_suffix between '20170101' and '20170331'
-and eCommerceAction.action_type in ('2','3','6')
-group by month
-order by month
-)
-
-select
-    *,
-    round(num_add_to_cart/num_product_view * 100, 2) as add_to_cart_rate,
-    round(num_purchase/num_product_view * 100, 2) as purchase_rate
-from product_data
 
                                       
-                                              ---VERY GOOD---
+                                           
 
